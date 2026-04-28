@@ -2,10 +2,17 @@ import { db, schema } from "@/lib/db";
 import { inArray } from "drizzle-orm";
 
 export async function DynamicBranding() {
-  const rows = await db
-    .select()
-    .from(schema.settings)
-    .where(inArray(schema.settings.key, ["primary_color", "secondary_color", "accent_color"]));
+  if (process.env.NEXT_PHASE === "phase-production-build") return null;
+
+  let rows: { key: string; value: string }[] = [];
+  try {
+    rows = await db
+      .select()
+      .from(schema.settings)
+      .where(inArray(schema.settings.key, ["primary_color", "secondary_color", "accent_color"]));
+  } catch {
+    return null;
+  }
   const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
 
   const css: string[] = [];

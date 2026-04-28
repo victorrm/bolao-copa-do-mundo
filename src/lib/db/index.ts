@@ -48,20 +48,14 @@ export function getDb(): DbInstance {
   return global.__bolaoDb as DbInstance;
 }
 
-const INTROSPECTION_PROPS = new Set([
-  "then",
-  "toJSON",
-  "asymmetricMatch",
-  "$$typeof",
-  "nodeType",
-  "@@__IMMUTABLE_ITERABLE__@@",
-  "@@__IMMUTABLE_RECORD__@@",
-]);
+function isBuildPhase(): boolean {
+  return process.env.NEXT_PHASE === "phase-production-build";
+}
 
 export const db: DbInstance = new Proxy({} as DbInstance, {
   get(_t, prop, receiver) {
+    if (isBuildPhase()) return undefined;
     if (typeof prop === "symbol") return undefined;
-    if (INTROSPECTION_PROPS.has(prop as string)) return undefined;
     return Reflect.get(getDb() as object, prop, receiver);
   },
 }) as DbInstance;
