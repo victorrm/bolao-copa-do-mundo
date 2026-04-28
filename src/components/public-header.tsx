@@ -12,6 +12,7 @@ export async function PublicHeader() {
         <nav className="flex items-center gap-3 sm:gap-5 text-sm">
           <Link href="/regras" className="hover:text-brand-primary">Como funciona</Link>
           <Link href="/sobre" className="hover:text-brand-primary hidden sm:inline">Sobre</Link>
+          <Link href="/termos" className="hover:text-brand-primary hidden md:inline">Termos</Link>
           {session ? (
             <Link href="/home" className="font-medium text-brand-primary hover:underline">
               Voltar ao bolão

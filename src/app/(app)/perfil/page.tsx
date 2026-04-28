@@ -9,6 +9,7 @@ import { parsePrefs } from "@/lib/email/prefs";
 import { EmailPrefsForm } from "./email-prefs-form";
 import { ProfileForm } from "./profile-form";
 import { PasswordForm } from "./password-form";
+import { CollapsibleSection } from "./collapsible-section";
 import { BADGES } from "@/lib/badges/catalog";
 import { ShareRankButton } from "./share-button";
 import { DangerZone } from "./danger-zone";
@@ -67,14 +68,37 @@ export default async function PerfilPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Editar perfil</CardTitle>
+          <CardTitle>Meus dados</CardTitle>
         </CardHeader>
-        <CardContent>
-          <ProfileForm
-            initialName={session.user.name ?? ""}
-            initialAvatarUrl={session.user.avatarUrl ?? null}
-            email={session.user.email}
-          />
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="h-16 w-16 overflow-hidden rounded-full border border-brand-border bg-brand-surface flex items-center justify-center shrink-0">
+              {session.user.avatarUrl ? (
+                <Image
+                  src={session.user.avatarUrl}
+                  alt=""
+                  width={64}
+                  height={64}
+                  className="h-full w-full object-cover"
+                  unoptimized
+                />
+              ) : (
+                <span className="text-[10px] text-brand-text-muted">sem foto</span>
+              )}
+            </div>
+            <div className="text-sm">
+              <div className="font-semibold text-base">{session.user.name ?? "Sem nome"}</div>
+              <div className="text-brand-text-muted">{session.user.email}</div>
+            </div>
+          </div>
+
+          <CollapsibleSection buttonLabel="Editar perfil">
+            <ProfileForm
+              initialName={session.user.name ?? ""}
+              initialAvatarUrl={session.user.avatarUrl ?? null}
+              email={session.user.email}
+            />
+          </CollapsibleSection>
         </CardContent>
       </Card>
 
@@ -83,7 +107,11 @@ export default async function PerfilPage() {
           <CardTitle>Senha</CardTitle>
         </CardHeader>
         <CardContent>
-          <PasswordForm hasPassword={!!session.user.passwordHash} />
+          <CollapsibleSection
+            buttonLabel={session.user.passwordHash ? "Trocar senha" : "Definir senha"}
+          >
+            <PasswordForm hasPassword={!!session.user.passwordHash} />
+          </CollapsibleSection>
         </CardContent>
       </Card>
 

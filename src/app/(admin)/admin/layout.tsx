@@ -50,8 +50,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <Link href="/admin/auditoria">Auditoria</Link>
           <Link href="/admin/observabilidade">Observabilidade</Link>
         </nav>
-        <div className="mt-8 flex flex-col gap-2 text-sm">
-          <Link href="/perfil" className="text-brand-text">Meu perfil</Link>
+        <div className="my-4 border-t border-brand-border" />
+        <nav className="flex flex-col gap-2 text-sm">
+          <Link
+            href="/perfil"
+            className="rounded-lg px-2 py-1.5 font-medium text-brand-primary hover:bg-brand-surface"
+          >
+            👤 Meu perfil
+          </Link>
+        </nav>
+        <div className="mt-4">
           <LogoutButton />
         </div>
       </aside>

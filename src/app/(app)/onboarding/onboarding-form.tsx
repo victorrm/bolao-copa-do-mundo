@@ -46,7 +46,8 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
         <span>
           Concordo com o tratamento dos meus dados conforme a{" "}
           <a href="/privacidade" target="_blank" className="underline">política de privacidade</a>{" "}
-          e os <a href="/regras" target="_blank" className="underline">termos do bolão</a>.
+          e com os{" "}
+          <a href="/termos" target="_blank" className="underline">termos de uso</a>.
         </span>
       </label>
 

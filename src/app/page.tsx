@@ -199,9 +199,11 @@ export default async function LandingPage() {
           <div>
             Bolão Copa do Mundo 2026 · open-source · MIT + CC BY 4.0
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-4">
             <Link href="/regras" className="hover:text-brand-primary">Como funciona</Link>
             <Link href="/sobre" className="hover:text-brand-primary">Sobre</Link>
+            <Link href="/privacidade" className="hover:text-brand-primary">Privacidade</Link>
+            <Link href="/termos" className="hover:text-brand-primary">Termos</Link>
             <Link href="/login" className="hover:text-brand-primary">Entrar</Link>
           </div>
         </div>

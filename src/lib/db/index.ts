@@ -48,8 +48,20 @@ export function getDb(): DbInstance {
   return global.__bolaoDb as DbInstance;
 }
 
+const INTROSPECTION_PROPS = new Set([
+  "then",
+  "toJSON",
+  "asymmetricMatch",
+  "$$typeof",
+  "nodeType",
+  "@@__IMMUTABLE_ITERABLE__@@",
+  "@@__IMMUTABLE_RECORD__@@",
+]);
+
 export const db: DbInstance = new Proxy({} as DbInstance, {
-  get(_t, prop) {
-    return Reflect.get(getDb() as object, prop);
+  get(_t, prop, receiver) {
+    if (typeof prop === "symbol") return undefined;
+    if (INTROSPECTION_PROPS.has(prop as string)) return undefined;
+    return Reflect.get(getDb() as object, prop, receiver);
   },
 }) as DbInstance;

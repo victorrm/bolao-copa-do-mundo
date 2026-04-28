@@ -20,7 +20,9 @@ export function LgpdBanner() {
         <p className="text-sm text-brand-text-muted">
           Usamos cookies essenciais (sessão e preferências) e logs com IP em hash para auditoria.
           Ao continuar, você concorda com a{" "}
-          <a href="/privacidade" className="underline text-brand-text">política de privacidade</a>.
+          <a href="/privacidade" className="underline text-brand-text">política de privacidade</a>{" "}
+          e os{" "}
+          <a href="/termos" className="underline text-brand-text">termos de uso</a>.
         </p>
         <button
           className="bg-brand-primary text-white text-sm font-medium px-4 py-2 rounded-xl shrink-0"
