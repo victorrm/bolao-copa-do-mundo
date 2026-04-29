@@ -18,8 +18,8 @@
     "db:bootstrap": "tsx --env-file=.env scripts/bootstrap.ts",
     "fd:sync": "tsx --env-file=.env scripts/sync-football-data.ts",
     "cf:bootstrap": "tsx scripts/cf-bootstrap.ts",
-    "cf:build": "@opennextjs/cloudflare build",
-    "cf:deploy": "wrangler deploy",
+    "cf:build": "opennextjs-cloudflare build && node scripts/cf-postbuild-patch.mjs",
+    "cf:deploy": "pnpm cf:build && opennextjs-cloudflare upload",
     "cf:migrate": "wrangler d1 migrations apply bolao-prod --remote",
     "cf:dev": "wrangler dev"
   },
