@@ -1,7 +1,7 @@
 name = "bolao-copa-do-mundo"
 compatibility_date = "2026-04-01"
 compatibility_flags = ["nodejs_compat"]
-main = "worker-entry.js"
+main = ".open-next/worker.js"
 
 [assets]
 directory = ".open-next/assets"
