@@ -12,3 +12,5 @@ data/*.db-shm
 .turbo
 coverage
 .vitest-cache
+.open-next
+.wrangler
