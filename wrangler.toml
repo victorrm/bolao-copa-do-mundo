@@ -1,7 +1,7 @@
 # Worker name. Forks should change this to a unique name (it becomes
 # part of the workers.dev URL). The CI/CD pipeline reads this to know
 # which worker to deploy to.
-name = "bolao-copa-do-mundo"
+name = "bolao-copa-do-mundovbb"
 compatibility_date = "2026-04-01"
 compatibility_flags = ["nodejs_compat"]
 # Use the wrapper at the repo root, which re-exports OpenNext's fetch
