@@ -40,7 +40,7 @@ export function PasswordForm({ hasPassword }: { hasPassword: boolean }) {
     <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
       {!hasPassword && (
         <p className="text-sm text-brand-text-muted">
-          Você ainda não tem uma senha — atualmente entra por link mágico no email. Defina uma senha aqui se quiser ter essa opção também.
+          Você ainda não tem uma senha definida. Defina uma agora pra acessar o bolão.
         </p>
       )}
       {hasPassword && (

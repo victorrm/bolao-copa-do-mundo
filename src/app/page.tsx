@@ -74,9 +74,10 @@ const FAQS: FaqItem[] = [
     q: "Quem pode entrar no bolão?",
     a: (
       <>
-        Apenas pessoas com email do domínio corporativo configurado pelo administrador.
-        O login é por <strong>magic link</strong> (sem senha) — você digita o email,
-        recebe um link e acessa direto. Nada de cadastro com senha.
+        O <strong>primeiro usuário a se cadastrar vira o administrador do bolão</strong> e o
+        domínio do email dele é liberado automaticamente. A partir daí, qualquer pessoa
+        com email desse mesmo domínio pode se cadastrar em <Link href="/cadastro" className="text-brand-primary hover:underline">/cadastro</Link>.
+        O admin pode liberar mais domínios depois pelo painel. Login é por email + senha.
       </>
     ),
   },

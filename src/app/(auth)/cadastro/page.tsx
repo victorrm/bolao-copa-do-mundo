@@ -1,16 +1,18 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LoginForm } from "./login-form";
+import { SignupForm } from "./signup-form";
 
-export default function LoginPage() {
+export default function SignupPage() {
   return (
     <main className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Entrar</CardTitle>
-          <CardDescription>Use seu email e senha pra acessar o bolão.</CardDescription>
+          <CardTitle>Criar conta</CardTitle>
+          <CardDescription>
+            O primeiro usuário a se cadastrar vira o administrador do bolão e libera o domínio do seu email pros colegas.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <LoginForm />
+          <SignupForm />
         </CardContent>
       </Card>
     </main>

@@ -34,23 +34,6 @@ export interface MatchSummary {
   stage: string;
 }
 
-export function magicLinkEmail(branding: Branding, link: string): { subject: string; html: string; text: string } {
-  const subject = `Seu acesso ao Bolão ${branding.companyName}`;
-  const body = `
-    <p>Olá,</p>
-    <p>Use o botão abaixo pra entrar. O link expira em 15 minutos.</p>
-    <p style="margin:24px 0;">
-      <a href="${link}" style="display:inline-block;background:${branding.primaryColor};color:#fff;padding:12px 24px;border-radius:12px;text-decoration:none;font-weight:600;">Entrar no bolão</a>
-    </p>
-    <p style="font-size:12px;color:#5c5f6a;word-break:break-all;">Se o botão não funcionar: ${link}</p>
-  `;
-  return {
-    subject,
-    html: shell(branding, subject, body),
-    text: `Acesse o Bolão ${branding.companyName}: ${link}\nExpira em 15 minutos.`,
-  };
-}
-
 export function reminderEmail(branding: Branding, name: string, matches: MatchSummary[]): { subject: string; html: string; text: string } {
   const subject = `${matches.length} jogo${matches.length > 1 ? "s" : ""} sem palpite`;
   const fmt = new Intl.DateTimeFormat("pt-BR", { weekday: "short", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });

@@ -33,7 +33,7 @@ Sem cobrança de mensalidade, sem SaaS, sem dados saindo da sua infra: você cri
 
 ## Funcionalidades
 
-- **Login por magic link** restrito ao(s) domínio(s) corporativo(s) cadastrados pelo admin.
+- **Login por email + senha** com cadastro restrito aos domínios corporativos liberados pelo admin (1º cadastro libera o próprio domínio automaticamente).
 - **Palpites de placar** pra todos os 104 jogos (fase de grupos + mata-mata até a final).
 - **Palpites especiais pré-Copa**: campeão, vice, 3º, artilheiro, primeira eliminada e seleção surpresa.
 - **Sistema de pontuação** com placar exato (3pts), vencedor correto (1pt) e bônus de mata-mata.
@@ -45,7 +45,7 @@ Sem cobrança de mensalidade, sem SaaS, sem dados saindo da sua infra: você cri
 - **PWA mobile-first** com modo escuro.
 - **i18n** preparado pra pt-BR, en e es.
 - **Editor de regras e prêmios** customizável pelo admin.
-- **Notificações por email** transacionais via Resend (magic link, lembrete de palpite, recap da rodada, broadcast).
+- **Notificações por email** transacionais via Resend (lembrete de palpite, recap da rodada, broadcast). Opcional — sem Resend o app funciona normalmente, só não envia emails.
 - **Cron jobs** integrados pra sincronizar resultados e enviar lembretes automaticamente.
 
 ## Stack
@@ -58,9 +58,9 @@ Sem cobrança de mensalidade, sem SaaS, sem dados saindo da sua infra: você cri
 | Cache / sessões | Cloudflare KV |
 | Storage | Cloudflare R2 (avatares, logos, OG images) |
 | Cron | Cloudflare Cron Triggers |
-| Email | [Resend](https://resend.com) |
+| Email | [Resend](https://resend.com) (opcional, só pra notificações) |
 | Resultados | [Football-Data.org](https://www.football-data.org) (primária) + edição manual no admin |
-| Auth | Magic link próprio (Argon2id pro superadmin) |
+| Auth | Email + senha (scrypt) com sessão por cookie httpOnly |
 | Testes | Vitest (unit) + Playwright (e2e) |
 
 ## Roadmap
@@ -128,31 +128,21 @@ Clicar nesse botão abre o Cloudflare e faz, automaticamente:
 4. Configuração das variáveis de ambiente (você preenche no formulário guiado).
 5. **Conexão Git-native**: cada push pra `main` no seu fork dispara um novo build+deploy automático na infra da Cloudflare. Não há `CLOUDFLARE_API_TOKEN` pra gerenciar — autorização é via OAuth GitHub ↔ Cloudflare.
 
-Depois do deploy, ainda faltam dois passos manuais que o botão não cobre — todos documentados em [`docs/DEPLOY.md`](docs/DEPLOY.md):
+Depois do deploy, falta apenas um passo manual:
 
 1. **Aplicar migrations remotas** (`pnpm cf:migrate`).
-2. **Configurar o primeiro acesso superadmin** — ver [Primeiro acesso superadmin](#primeiro-acesso-superadmin) abaixo.
 
 ### Primeiro acesso superadmin
 
-O `/admin/login` aceita email + senha (não magic link), o que evita uma dependência circular: se você ainda não configurou o Resend, magic links não funcionam — mas você precisa entrar no painel pra configurar o Resend. A plataforma resolve isso com **bootstrap por variável de ambiente**.
+Não tem segredo, env var, nem CLI. Acesse `https://seu-worker.workers.dev/cadastro` e preencha o formulário (email + senha + nome + aceite dos termos).
 
-Configure essas duas variáveis no painel da Cloudflare (**Workers & Pages → seu worker → Settings → Variables and Secrets**) — pode ser como Secret:
+O **primeiro usuário a se cadastrar vira o superadmin** automaticamente, e o domínio do email dele é adicionado à allowlist. A partir daí:
 
-| Variável | Valor |
-|---|---|
-| `SUPERADMIN_EMAIL` | Email do primeiro superadmin (ex: `voce@suaempresa.com.br`) |
-| `SUPERADMIN_BOOTSTRAP_PASSWORD` | Uma senha temporária forte (mínimo 8 caracteres) |
+- Outros colegas com email do mesmo domínio podem se cadastrar livremente em `/cadastro`.
+- O superadmin pode liberar mais domínios em `/admin/dominios` ou criar grupos.
+- Esqueceu a senha de algum participante? O superadmin reseta no painel **Usuários** — gera uma senha temporária na hora, exibida na tela. O participante usa pra entrar e é forçado a definir uma nova.
 
-Em seguida acesse `/admin/login`, entre com esse email e essa senha. Na **primeira vez** que essas credenciais batem:
-
-1. A conta superadmin é criada automaticamente (ou promovida, se já existir um usuário com esse email).
-2. O domínio do email é adicionado à allowlist (pra que outros colegas da empresa consigam logar via magic link depois).
-3. Você é redirecionado pra `/admin/change-password` e **forçado a definir uma senha permanente** antes de qualquer outra ação.
-
-Após a senha ser trocada, **remova `SUPERADMIN_BOOTSTRAP_PASSWORD` do dashboard** — ela só é usada na primeira vez. (Mesmo que você esqueça, ela só funciona enquanto não houver superadmin com `passwordHash` no banco; assim que você troca a senha, o bootstrap vira no-op.)
-
-> **Por que assim e não outras opções?** Magic link exigiria Resend funcionando (chicken-and-egg). Senha hard-coded no código não dá pra customizar e seria insegura. Comando CLI exigiria `wrangler` + acesso ao D1 remoto, o que nem todo operador tem nas mãos no momento do primeiro deploy. A env var é a forma mais simples e auditável: você define, usa uma vez, remove.
+Sem dependência de Resend pra entrar no app — Resend é opcional e cobre só os emails de notificação (lembrete de palpite, recap, broadcast).
 
 ### Bootstrap manual via CLI
 
@@ -168,14 +158,14 @@ pnpm cf:bootstrap
 # Aplica migrations no D1 remoto
 pnpm cf:migrate
 
-# Configura secrets
+# Configura secrets (obrigatórios)
 wrangler secret put SESSION_SECRET                  # 32+ bytes random
-wrangler secret put SUPERADMIN_EMAIL                # email do admin inicial
-wrangler secret put SUPERADMIN_BOOTSTRAP_PASSWORD   # senha temporária para o 1º login (remover depois)
 wrangler secret put FOOTBALL_DATA_API_KEY           # api.football-data.org
-wrangler secret put RESEND_API_KEY                  # opcional
-wrangler secret put RESEND_FROM_EMAIL               # ex: bolao@suaempresa.com.br
 wrangler secret put CRON_SECRET                     # protege endpoints de cron
+
+# Secrets opcionais (só se for usar emails — Resend)
+wrangler secret put RESEND_API_KEY                  # ex: re_xxx (opcional)
+wrangler secret put RESEND_FROM_EMAIL               # ex: bolao@suaempresa.com.br (opcional)
 
 # Build + deploy
 pnpm cf:build
@@ -184,9 +174,11 @@ pnpm cf:deploy
 
 Documentação completa, incluindo CI/CD via GitHub Actions e cron triggers: [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
-### Como emitir a API key do Resend
+### Como emitir a API key do Resend (opcional)
 
-A plataforma usa o [Resend](https://resend.com) pra disparar magic links de login, lembretes de palpite e o recap diário. O free tier cobre **3.000 emails/mês** — folgado pra empresas pequenas/médias.
+> **Pulando essa seção?** Sem problema. Sem Resend, o app funciona normalmente — o login não depende de email (é email + senha). Você só perde os emails de **lembrete de palpite**, **recap diário** e **broadcast manual**, que ficam só no log do worker.
+
+A plataforma usa o [Resend](https://resend.com) pra disparar lembretes de palpite, recap diário e broadcasts do admin. O free tier cobre **3.000 emails/mês** — folgado pra empresas pequenas/médias.
 
 **Passo a passo:**
 
@@ -238,22 +230,29 @@ A plataforma usa o [Resend](https://resend.com) pra disparar magic links de logi
 pnpm install
 cp .env.example .env
 
-# Cria o SQLite local + roda migrations + seeds (seleções, jogos)
-pnpm db:bootstrap
+# Cria o SQLite local e aplica as migrations
+pnpm db:migrate
+
+# Puxa seleções e jogos da Copa do Mundo (precisa de FOOTBALL_DATA_API_KEY no .env)
+pnpm fd:sync
 ```
 
 Configure as chaves em `.env`:
 
 ```env
 SESSION_SECRET=algum-segredo-de-32-bytes
-SUPERADMIN_EMAIL=admin@suaempresa.com.br
 FOOTBALL_DATA_API_KEY=sua-chave-em-football-data.org
-RESEND_API_KEY=                      # opcional — sem chave, magic links vão pro console
-RESEND_FROM_EMAIL=bolao@empresa.com.br
+CRON_SECRET=outro-segredo-pra-os-crons
 APP_URL=http://localhost:3000
 DEFAULT_LOCALE=pt-BR
 TIMEZONE=America/Sao_Paulo
+
+# Opcionais (sem isso, emails são logados no console)
+RESEND_API_KEY=
+RESEND_FROM_EMAIL=bolao@empresa.com.br
 ```
+
+Depois de rodar `pnpm dev`, abra `http://localhost:3000/cadastro` e crie a primeira conta — ela vira o superadmin automaticamente.
 
 ### Rodar
 

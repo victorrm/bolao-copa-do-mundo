@@ -25,14 +25,22 @@ pnpm cf:migrate
 
 ## 4. Configurar secrets
 
+Obrigatórios:
+
 ```bash
 wrangler secret put SESSION_SECRET            # 32+ bytes random
-wrangler secret put SUPERADMIN_EMAIL          # email do admin inicial
 wrangler secret put FOOTBALL_DATA_API_KEY     # chave de api.football-data.org
-wrangler secret put RESEND_API_KEY            # opcional, sem chave usa console.log
-wrangler secret put RESEND_FROM_EMAIL         # ex: bolao@empresa.com.br
 wrangler secret put CRON_SECRET               # protege os cron endpoints
 ```
+
+Opcionais (só se for usar emails — Resend):
+
+```bash
+wrangler secret put RESEND_API_KEY            # ex: re_xxx
+wrangler secret put RESEND_FROM_EMAIL         # ex: bolao@empresa.com.br
+```
+
+Sem Resend, o app funciona normalmente — emails são logados no console do worker.
 
 ## 5. Build & deploy
 
@@ -43,21 +51,11 @@ pnpm cf:deploy
 
 O build do OpenNext gera `.open-next/worker.js`. O `worker-entry.js` na raiz wrappa esse handler e adiciona o `scheduled()` para rodar os cron triggers (sync-results, reminders, recap).
 
-## 6. Promover superadmin e liberar domínio
+## 6. Primeiro acesso
 
-Após o primeiro deploy, conecte ao D1 remoto:
+Acesse `https://seu-worker.workers.dev/cadastro` e crie a primeira conta. **O primeiro usuário a se cadastrar vira superadmin** e o domínio do email dele é adicionado à `allowed_domains` automaticamente.
 
-```bash
-wrangler d1 execute bolao-prod --remote \
-  --command "INSERT INTO allowed_domains (domain, is_wildcard, created_at) VALUES ('SEU_DOMINIO.com', 0, strftime('%s','now'))"
-```
-
-Faça login pelo magic link, então:
-
-```bash
-wrangler d1 execute bolao-prod --remote \
-  --command "UPDATE users SET role='superadmin' WHERE email='SEU_EMAIL'"
-```
+A partir daí, colegas com email do mesmo domínio podem se cadastrar livremente. O superadmin libera mais domínios em `/admin/dominios` e gerencia usuários (incluindo reset de senha) em `/admin/usuarios`.
 
 ## 7. Cron triggers
 

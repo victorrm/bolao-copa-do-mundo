@@ -39,14 +39,6 @@ export const sessions = sqliteTable("sessions", {
   ipHash: text("ip_hash"),
 });
 
-export const magicLinks = sqliteTable("magic_links", {
-  tokenHash: text("token_hash").primaryKey(),
-  email: text("email").notNull(),
-  expiresAt: integer("expires_at").notNull(),
-  usedAt: integer("used_at"),
-  ipHash: text("ip_hash"),
-});
-
 export const teams = sqliteTable("teams", {
   id: integer("id").primaryKey(),
   externalId: integer("external_id").unique(),

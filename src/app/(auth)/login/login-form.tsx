@@ -1,19 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { requestMagicLink } from "./actions";
+import { submitLogin } from "./actions";
 
-interface Props {
-  placeholder: string;
-  submit: string;
-  submitting: string;
-}
-
-export function LoginForm({ placeholder, submit, submitting }: Props) {
+export function LoginForm() {
   const [email, setEmail] = useState("");
-  const [message, setMessage] = useState<string | null>(null);
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   return (
@@ -21,26 +17,38 @@ export function LoginForm({ placeholder, submit, submitting }: Props) {
       className="flex flex-col gap-3"
       onSubmit={(e) => {
         e.preventDefault();
+        setError(null);
         startTransition(async () => {
-          const res = await requestMagicLink(email);
-          setMessage(res.message);
+          const res = await submitLogin({ email, password });
+          if (!res.ok) setError(res.error ?? "Erro");
         });
       }}
     >
       <Input
         type="email"
-        placeholder={placeholder}
+        placeholder="seu.email@empresa.com.br"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
         autoFocus
       />
-      <Button type="submit" disabled={isPending || !email}>
-        {isPending ? submitting : submit}
+      <Input
+        type="password"
+        placeholder="Sua senha"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+      />
+      <Button type="submit" disabled={isPending || !email || !password}>
+        {isPending ? "Entrando…" : "Entrar"}
       </Button>
-      {message && (
-        <p className="text-sm text-brand-text-muted text-center">{message}</p>
-      )}
+      {error && <p className="text-sm text-brand-danger text-center">{error}</p>}
+      <p className="text-sm text-center text-brand-text-muted mt-2">
+        Não tem conta?{" "}
+        <Link href="/cadastro" className="text-brand-primary hover:underline">
+          Cadastrar
+        </Link>
+      </p>
     </form>
   );
 }

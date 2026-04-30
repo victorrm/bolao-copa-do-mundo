@@ -1,46 +1,46 @@
 "use server";
 
+import { eq } from "drizzle-orm";
+import { redirect } from "next/navigation";
+import { z } from "zod";
 import { db, schema } from "@/lib/db";
-import { isEmailDomainAllowed } from "@/lib/auth/domains";
-import { generateMagicLinkToken } from "@/lib/auth/tokens";
-import { sendEmail } from "@/lib/email/send";
-import { loadBranding } from "@/lib/email/branding";
-import { magicLinkEmail } from "@/lib/email/templates";
-import { getMessages } from "@/lib/i18n";
-import { sql } from "drizzle-orm";
-const RATE_LIMIT_PER_EMAIL = 5;
-const RATE_WINDOW_SECONDS = 60 * 60;
-const MAGIC_TTL_SECONDS = 60 * 15;
+import { verifyPassword } from "@/lib/auth/password";
+import { createSession } from "@/lib/auth/session";
+import { logAudit } from "@/lib/audit/log";
 
-export async function requestMagicLink(email: string): Promise<{ message: string }> {
-  const m = await getMessages();
-  const generic = m.login.genericMessage;
+const Schema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+});
 
-  email = email.trim().toLowerCase();
-  if (!email || !email.includes("@")) {
-    return { message: generic };
+export async function submitLogin(input: unknown): Promise<{ ok: boolean; error?: string }> {
+  const parsed = Schema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Dados inválidos" };
+
+  const email = parsed.data.email.trim().toLowerCase();
+  const generic = { ok: false, error: "Email ou senha inválidos" } as const;
+
+  const user = await db
+    .select()
+    .from(schema.users)
+    .where(eq(schema.users.email, email))
+    .limit(1)
+    .then((r) => r[0]);
+
+  if (!user || !user.passwordHash || user.deletedAt) return generic;
+
+  const valid = await verifyPassword(parsed.data.password, user.passwordHash);
+  if (!valid) {
+    await logAudit(user.id, "auth.login.failed", user.email);
+    return generic;
   }
 
-  const allowed = await isEmailDomainAllowed(email);
-  if (!allowed) return { message: generic };
+  const now = Math.floor(Date.now() / 1000);
+  await db.update(schema.users).set({ lastLoginAt: now }).where(eq(schema.users.id, user.id));
+  await createSession(user.id);
+  await logAudit(user.id, "auth.login.success", user.email);
 
-  const since = Math.floor(Date.now() / 1000) - RATE_WINDOW_SECONDS;
-  const recent = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(schema.magicLinks)
-    .where(sql`${schema.magicLinks.email} = ${email} and ${schema.magicLinks.expiresAt} > ${since}`);
-  if ((recent[0]?.count ?? 0) >= RATE_LIMIT_PER_EMAIL) {
-    return { message: generic };
-  }
-
-  const { token, tokenHash } = generateMagicLinkToken();
-  const expiresAt = Math.floor(Date.now() / 1000) + MAGIC_TTL_SECONDS;
-  await db.insert(schema.magicLinks).values({ tokenHash, email, expiresAt });
-
-  const url = `${process.env.APP_URL ?? "http://localhost:3000"}/verify?token=${token}`;
-  const branding = await loadBranding();
-  const tpl = magicLinkEmail(branding, url);
-  await sendEmail({ to: email, subject: tpl.subject, html: tpl.html, text: tpl.text });
-
-  return { message: generic };
+  if (user.passwordMustChange) redirect("/perfil/senha");
+  if (user.role === "superadmin") redirect("/admin");
+  redirect("/home");
 }

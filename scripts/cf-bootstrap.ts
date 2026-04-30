@@ -53,11 +53,13 @@ safe("wrangler r2 bucket create bolao-files");
 
 console.log("\nProntos. Próximos passos manuais:");
 console.log("  1) wrangler d1 migrations apply bolao-prod --remote");
-console.log("  2) Configure secrets:");
+console.log("  2) Configure secrets obrigatórios:");
 console.log("     wrangler secret put SESSION_SECRET");
-console.log("     wrangler secret put SUPERADMIN_EMAIL");
 console.log("     wrangler secret put FOOTBALL_DATA_API_KEY");
+console.log("     wrangler secret put CRON_SECRET");
+console.log("     # opcionais (emails de notificação):");
 console.log("     wrangler secret put RESEND_API_KEY");
 console.log("     wrangler secret put RESEND_FROM_EMAIL");
-console.log("     wrangler secret put CRON_SECRET");
 console.log("  3) pnpm cf:deploy");
+console.log("  4) Acesse https://<seu-worker>.workers.dev/cadastro — o primeiro");
+console.log("     usuário a se cadastrar vira superadmin automaticamente.");

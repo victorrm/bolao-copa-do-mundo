@@ -6,11 +6,11 @@ import { LogoutButton } from "@/components/logout-button";
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getCurrentSession();
 
-  if (!session) redirect("/admin/login");
+  if (!session) redirect("/login");
   if (session.user.role !== "superadmin") redirect("/jogos");
 
   if (session.user.passwordMustChange) {
-    redirect("/admin/change-password");
+    redirect("/perfil/senha");
   }
 
   return (

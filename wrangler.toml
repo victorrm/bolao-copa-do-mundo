@@ -34,13 +34,18 @@ TIMEZONE = "America/Sao_Paulo"
 # to edit this file.
 
 # Secrets — set via `wrangler secret put`:
-#   wrangler secret put SESSION_SECRET
-#   wrangler secret put RESEND_API_KEY
-#   wrangler secret put FOOTBALL_DATA_API_KEY
-#   wrangler secret put CRON_SECRET
-#   wrangler secret put SUPERADMIN_EMAIL
-#   wrangler secret put SUPERADMIN_BOOTSTRAP_PASSWORD  # used only on first login; remove after
-#                                                       # changing the password in the UI.
+#   Required:
+#     SESSION_SECRET           # 32+ bytes random, signs the session cookie
+#     FOOTBALL_DATA_API_KEY    # api.football-data.org token
+#     CRON_SECRET              # bearer for /api/cron/* endpoints
+#   Optional (only needed if you want email notifications):
+#     RESEND_API_KEY           # if absent, emails are logged to the worker console
+#     RESEND_FROM_EMAIL        # ex: bolao@suaempresa.com.br
+#
+# First-time setup: deploy, then access /cadastro on the public URL.
+# The first account created becomes the superadmin and its email domain is
+# auto-added to the allowed_domains table — colleagues can sign up next.
+# No bootstrap env vars needed.
 
 [triggers]
 crons = [

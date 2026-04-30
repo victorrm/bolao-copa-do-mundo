@@ -16,7 +16,6 @@
     "test:e2e:ui": "playwright test --ui",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --env-file=.env scripts/migrate.ts",
-    "db:bootstrap": "tsx --env-file=.env scripts/bootstrap.ts",
     "fd:sync": "tsx --env-file=.env scripts/sync-football-data.ts",
     "cf:bootstrap": "tsx scripts/cf-bootstrap.ts",
     "cf:build": "pnpm build",

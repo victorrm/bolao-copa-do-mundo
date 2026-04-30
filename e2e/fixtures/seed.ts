@@ -1,10 +1,10 @@
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
-import { eq, like } from "drizzle-orm";
 import { mkdirSync, unlinkSync, existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { nanoid } from "nanoid";
 import * as schema from "../../src/lib/db/schema";
+import { hashPassword } from "../../src/lib/auth/password";
 
 export const E2E_DB = "./data/e2e.db";
 
@@ -30,8 +30,6 @@ export function resetDb() {
   const db = drizzle(sqlite, { schema });
   const now = Math.floor(Date.now() / 1000);
 
-  db.insert(schema.allowedDomains).values({ domain: "e2e.test", isWildcard: 0, createdAt: now }).run();
-
   db.insert(schema.teams).values([
     { id: 1, code: "BRA", namePt: "Brasil", nameEn: "Brazil", nameEs: "Brasil", flagUrl: null, groupCode: "C" },
     { id: 2, code: "ARG", namePt: "Argentina", nameEn: "Argentina", nameEs: "Argentina", flagUrl: null, groupCode: "D" },
@@ -45,6 +43,14 @@ export function resetDb() {
     { externalId: "e2e-2", stage: "group", groupCode: "D", round: 1, homeTeamId: 2, awayTeamId: 4, scheduledAt: future + 3600, status: "scheduled" },
   ]).run();
 
+  sqlite.close();
+}
+
+export function seedAllowedDomain(domain: string) {
+  const sqlite = new Database(E2E_DB);
+  const db = drizzle(sqlite, { schema });
+  const now = Math.floor(Date.now() / 1000);
+  db.insert(schema.allowedDomains).values({ domain, isWildcard: 0, createdAt: now }).run();
   sqlite.close();
 }
 
@@ -72,21 +78,61 @@ export function seedUser(email: string, name: string): SeededUser {
   return { id, email: email.toLowerCase(), name };
 }
 
-export function getMagicLinkToken(email: string): string | null {
+export async function seedUserWithPassword(
+  email: string,
+  name: string,
+  password: string,
+  role: "participant" | "superadmin" = "participant",
+): Promise<SeededUser> {
   const sqlite = new Database(E2E_DB);
   const db = drizzle(sqlite, { schema });
-  const rows = db
-    .select()
-    .from(schema.magicLinks)
-    .where(eq(schema.magicLinks.email, email.toLowerCase()))
-    .all();
+  const now = Math.floor(Date.now() / 1000);
+  const id = nanoid(21);
+  const passwordHash = await hashPassword(password);
+  db.insert(schema.users).values({
+    id,
+    email: email.toLowerCase(),
+    name,
+    role,
+    passwordHash,
+    consentLgpd: 1,
+    consentLgpdAt: now,
+    createdAt: now,
+  }).run();
   sqlite.close();
-  return rows.length > 0 ? rows[rows.length - 1].tokenHash : null;
+  return { id, email: email.toLowerCase(), name };
 }
 
-export function clearMagicLinks() {
+export function countUsers(): number {
   const sqlite = new Database(E2E_DB);
-  const db = drizzle(sqlite, { schema });
-  db.delete(schema.magicLinks).where(like(schema.magicLinks.email, "%@%")).run();
-  sqlite.close();
+  try {
+    const row = sqlite.prepare("SELECT count(*) as c FROM users").get() as { c: number };
+    return row.c;
+  } finally {
+    sqlite.close();
+  }
+}
+
+export function getUserRole(email: string): string | null {
+  const sqlite = new Database(E2E_DB);
+  try {
+    const row = sqlite
+      .prepare("SELECT role FROM users WHERE email = ?")
+      .get(email.toLowerCase()) as { role: string } | undefined;
+    return row?.role ?? null;
+  } finally {
+    sqlite.close();
+  }
+}
+
+export function isDomainAllowed(domain: string): boolean {
+  const sqlite = new Database(E2E_DB);
+  try {
+    const row = sqlite
+      .prepare("SELECT 1 FROM allowed_domains WHERE domain = ?")
+      .get(domain) as unknown;
+    return Boolean(row);
+  } finally {
+    sqlite.close();
+  }
 }

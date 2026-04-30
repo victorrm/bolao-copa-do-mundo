@@ -1,17 +1,46 @@
 import { test, expect } from "@playwright/test";
+import { resetDb, seedUserWithPassword } from "./fixtures/seed";
 
 test.describe("login", () => {
-  test("rejects invalid email format silently (generic message)", async ({ page }) => {
-    await page.goto("/login");
-    await page.getByPlaceholder(/email/i).fill("not-allowed@other.com");
-    await page.getByRole("button", { name: /receber link/i }).click();
-    await expect(page.getByText(/Se este email puder acessar/i)).toBeVisible({ timeout: 5000 });
+  test.beforeEach(async () => {
+    resetDb();
   });
 
-  test("accepts allowed domain and shows generic confirmation", async ({ page }) => {
+  test("rejects invalid credentials", async ({ page }) => {
+    await seedUserWithPassword("alice@e2e.test", "Alice", "senha-correta-1234");
+
     await page.goto("/login");
     await page.getByPlaceholder(/email/i).fill("alice@e2e.test");
-    await page.getByRole("button", { name: /receber link/i }).click();
-    await expect(page.getByText(/Se este email puder acessar/i)).toBeVisible({ timeout: 5000 });
+    await page.getByPlaceholder(/senha/i).fill("senha-errada-1234");
+    await page.getByRole("button", { name: /entrar/i }).click();
+
+    await expect(page.getByText(/email ou senha inválidos/i)).toBeVisible({ timeout: 5000 });
+  });
+
+  test("logs in participant and redirects to /home", async ({ page }) => {
+    await seedUserWithPassword("alice@e2e.test", "Alice", "senha-correta-1234", "participant");
+
+    await page.goto("/login");
+    await page.getByPlaceholder(/email/i).fill("alice@e2e.test");
+    await page.getByPlaceholder(/senha/i).fill("senha-correta-1234");
+    await page.getByRole("button", { name: /entrar/i }).click();
+
+    await page.waitForURL(/\/home/, { timeout: 5000 });
+  });
+
+  test("logs in superadmin and redirects to /admin", async ({ page }) => {
+    await seedUserWithPassword("admin@e2e.test", "Admin", "senha-correta-1234", "superadmin");
+
+    await page.goto("/login");
+    await page.getByPlaceholder(/email/i).fill("admin@e2e.test");
+    await page.getByPlaceholder(/senha/i).fill("senha-correta-1234");
+    await page.getByRole("button", { name: /entrar/i }).click();
+
+    await page.waitForURL(/\/admin/, { timeout: 5000 });
+  });
+
+  test("shows link to /cadastro", async ({ page }) => {
+    await page.goto("/login");
+    await expect(page.getByRole("link", { name: /cadastrar/i })).toBeVisible();
   });
 });
