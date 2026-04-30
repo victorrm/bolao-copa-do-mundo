@@ -4,6 +4,8 @@ Plataforma open-source de bolão corporativo para a Copa do Mundo FIFA 2026. Pen
 
 Sem cobrança de mensalidade, sem SaaS, sem dados saindo da sua infra: você cria o seu fork, faz o deploy na sua Cloudflare, e usa.
 
+Projeto desenvolvido pela [**Tidebreakers**](https://tidebreakers.com.br/) — ecossistema digital que vai além do modelo tradicional de agências e consultorias, unindo criativo, mídia, tecnologia e dados pra transformar desafios em resultados reais. Se a sua empresa quer um endomarketing que engaja de verdade (ou qualquer outra operação digital com transparência e ROI comprovado), [fala com a gente](https://tidebreakers.com.br/).
+
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/victorrm/bolao-copa-do-mundo)
 
 ## Sumário
