@@ -23,10 +23,13 @@ import {
   Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BrandLogo } from "@/components/brand-logo";
 
 interface SidebarProps {
   nextRoundStart?: number | null;
   isAdmin?: boolean;
+  companyName?: string | null;
+  logoUrl?: string | null;
 }
 
 interface NavItem {
@@ -74,12 +77,24 @@ function isActive(currentPath: string, href: string) {
   return currentPath === path || currentPath.startsWith(path + "/");
 }
 
-export function AppSidebar({ nextRoundStart, isAdmin = false }: SidebarProps) {
+export function AppSidebar({
+  nextRoundStart,
+  isAdmin = false,
+  companyName,
+  logoUrl,
+}: SidebarProps) {
   const pathname = usePathname();
   const groups: NavGroup[] = isAdmin ? [PARTICIPANT_NAV, ADMIN_NAV] : [PARTICIPANT_NAV];
 
   return (
     <aside className="hidden lg:flex w-64 shrink-0 flex-col gap-4 border-r border-brand-border bg-brand-card/40 sticky top-0 h-screen overflow-y-auto px-4 py-5">
+      <BrandLogo
+        href="/home"
+        logoUrl={logoUrl}
+        companyName={companyName}
+        className="px-2"
+      />
+
       <Link
         href="/home"
         className={cn(

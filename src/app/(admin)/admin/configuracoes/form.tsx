@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
+import { Upload, Trash2, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { saveSettings } from "./actions";
@@ -12,11 +13,6 @@ const COLOR_FIELDS: { key: ColorKey; label: string; hint: string; fallback: stri
   { key: "primary_color", label: "Cor primária", hint: "Botões, links e elementos principais.", fallback: "#009C3B" },
   { key: "secondary_color", label: "Cor secundária", hint: "Destaques suaves e badges.", fallback: "#FFD500" },
   { key: "accent_color", label: "Cor de destaque", hint: "Foco de inputs e detalhes.", fallback: "#002776" },
-];
-
-const TEXT_FIELDS: { key: string; label: string; placeholder?: string }[] = [
-  { key: "company_name", label: "Nome da empresa", placeholder: "Ex: Acme Ltda." },
-  { key: "logo_url", label: "URL do logo", placeholder: "https://..." },
 ];
 
 function clamp(n: number, min: number, max: number) {
@@ -118,6 +114,8 @@ export function SettingsForm({ initial }: { initial: Record<string, string> }) {
   const [values, setValues] = useState(initial);
   const [status, setStatus] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const colorHex = useMemo(() => {
     const out: Record<ColorKey, string> = { primary_color: "", secondary_color: "", accent_color: "" };
@@ -134,6 +132,28 @@ export function SettingsForm({ initial }: { initial: Record<string, string> }) {
     setStatus(null);
   }
 
+  async function handleLogoUpload(file: File) {
+    setUploading(true);
+    setStatus(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("folder", "logo");
+      const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
+      const data = (await res.json()) as { ok: boolean; url?: string; error?: string };
+      if (!data.ok || !data.url) {
+        setStatus({ kind: "err", msg: data.error ?? "Erro ao enviar logo" });
+        return;
+      }
+      setValues((v) => ({ ...v, logo_url: data.url! }));
+    } catch {
+      setStatus({ kind: "err", msg: "Erro ao enviar logo" });
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
   return (
     <form
       className="flex flex-col gap-5"
@@ -146,19 +166,90 @@ export function SettingsForm({ initial }: { initial: Record<string, string> }) {
         });
       }}
     >
-      {TEXT_FIELDS.map((f) => (
-        <div key={f.key} className="flex flex-col gap-1">
-          <label className="text-sm font-medium">{f.label}</label>
-          <Input
-            value={values[f.key] ?? ""}
-            placeholder={f.placeholder}
-            onChange={(e) => {
-              setValues((v) => ({ ...v, [f.key]: e.target.value }));
-              setStatus(null);
-            }}
-          />
+      <div className="flex flex-col gap-1">
+        <label className="text-sm font-medium">Nome da empresa</label>
+        <Input
+          value={values.company_name ?? ""}
+          placeholder="Ex: Acme Ltda."
+          onChange={(e) => {
+            setValues((v) => ({ ...v, company_name: e.target.value }));
+            setStatus(null);
+          }}
+        />
+        <p className="text-xs text-brand-text-muted">
+          Aparece no cabeçalho, no menu lateral e em emails enviados aos participantes.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-medium">Logo da empresa</label>
+        <div className="flex items-start gap-4">
+          <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-brand-border bg-brand-card overflow-hidden">
+            {values.logo_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={values.logo_url}
+                alt="Preview do logo"
+                className="h-full w-full object-contain p-2"
+              />
+            ) : (
+              <ImageIcon className="h-7 w-7 text-brand-text-muted" />
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2 flex-1 min-w-0">
+            <div className="flex flex-wrap gap-2">
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleLogoUpload(f);
+                }}
+              />
+              <Button
+                type="button"
+                variant="subtle"
+                size="sm"
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+              >
+                <Upload className="h-3.5 w-3.5" />
+                {uploading ? "Enviando…" : values.logo_url ? "Trocar logo" : "Enviar logo"}
+              </Button>
+              {values.logo_url && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setValues((v) => ({ ...v, logo_url: "" }));
+                    setStatus(null);
+                  }}
+                  className="text-brand-danger hover:bg-brand-danger/10"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Remover
+                </Button>
+              )}
+            </div>
+            <Input
+              value={values.logo_url ?? ""}
+              placeholder="https://... (ou faça upload acima)"
+              onChange={(e) => {
+                setValues((v) => ({ ...v, logo_url: e.target.value }));
+                setStatus(null);
+              }}
+              className="font-mono text-xs"
+            />
+            <p className="text-xs text-brand-text-muted">
+              PNG, JPG, WebP ou GIF até 2 MB. Idealmente quadrado e com fundo transparente.
+            </p>
+          </div>
         </div>
-      ))}
+      </div>
 
       <div className="border-t border-brand-border pt-4">
         <h2 className="text-sm font-semibold mb-3">Cores da marca</h2>

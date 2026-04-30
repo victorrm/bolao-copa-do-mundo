@@ -28,6 +28,7 @@ import {
   Activity,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { BrandLogo } from "@/components/brand-logo";
 import { cn } from "@/lib/utils";
 
 interface HeaderProps {
@@ -35,6 +36,8 @@ interface HeaderProps {
   userRole: string;
   userAvatarUrl?: string | null;
   isAdmin?: boolean;
+  companyName?: string | null;
+  logoUrl?: string | null;
   logoutSlot: React.ReactNode;
 }
 
@@ -74,7 +77,15 @@ function isTabActive(currentPath: string, href: string) {
   return currentPath === path || currentPath.startsWith(path + "/");
 }
 
-export function AppHeader({ userName, userRole, userAvatarUrl, isAdmin = false, logoutSlot }: HeaderProps) {
+export function AppHeader({
+  userName,
+  userRole,
+  userAvatarUrl,
+  isAdmin = false,
+  companyName,
+  logoUrl,
+  logoutSlot,
+}: HeaderProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -92,14 +103,14 @@ export function AppHeader({ userName, userRole, userAvatarUrl, isAdmin = false, 
         </button>
 
         {/* Mobile logo */}
-        <Link href="/home" className="flex items-center gap-2 lg:hidden">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand-primary to-brand-primary/60">
-            <Trophy className="h-4 w-4 text-white" strokeWidth={2.5} />
-          </span>
-          <span className="font-display font-bold text-base">
-            Bolão <span className="text-brand-primary">2026</span>
-          </span>
-        </Link>
+        <div className="lg:hidden">
+          <BrandLogo
+            href="/home"
+            logoUrl={logoUrl}
+            companyName={companyName}
+            size="sm"
+          />
+        </div>
 
         <button
           type="button"
@@ -214,14 +225,14 @@ export function AppHeader({ userName, userRole, userAvatarUrl, isAdmin = false, 
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
-              <Link href="/home" onClick={() => setMobileOpen(false)} className="flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand-primary to-brand-primary/60">
-                  <Trophy className="h-4 w-4 text-white" strokeWidth={2.5} />
-                </span>
-                <span className="font-display font-bold">
-                  Bolão <span className="text-brand-primary">2026</span>
-                </span>
-              </Link>
+              <div onClick={() => setMobileOpen(false)}>
+                <BrandLogo
+                  href="/home"
+                  logoUrl={logoUrl}
+                  companyName={companyName}
+                  size="sm"
+                />
+              </div>
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
