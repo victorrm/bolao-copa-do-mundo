@@ -8,8 +8,15 @@ Projeto desenvolvido pela [**Tidebreakers**](https://tidebreakers.com.br/) — e
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/victorrm/bolao-copa-do-mundo)
 
+## Screenshots
+
+| Landing white-label | Jogos & palpites | Regras públicas |
+|---|---|---|
+| ![Landing](public/uploads/tela3.png) | ![Dashboard de jogos](public/uploads/tela1.png) | ![Como funciona o bolão](public/uploads/tela2.png) |
+
 ## Sumário
 
+- [Screenshots](#screenshots)
 - [Por que usar](#por-que-usar)
 - [Funcionalidades](#funcionalidades)
 - [Stack](#stack)
