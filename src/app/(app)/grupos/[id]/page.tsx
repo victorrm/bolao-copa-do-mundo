@@ -5,6 +5,7 @@ import { eq, and, asc, sql } from "drizzle-orm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LeaveButton } from "./leave-button";
+import { getAppUrl } from "@/lib/app-url";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +40,8 @@ export default async function LeaguePage({ params }: { params: Promise<{ id: str
   ranking.sort((a, b) => Number(b.points) - Number(a.points) || Number(b.exact) - Number(a.exact));
 
   const isOwner = league.ownerId === session.user.id;
-  const inviteUrl = `${process.env.APP_URL ?? "http://localhost:3000"}/grupos/entrar?code=${league.inviteCode}`;
+  const baseUrl = await getAppUrl();
+  const inviteUrl = `${baseUrl}/grupos/entrar?code=${league.inviteCode}`;
 
   return (
     <div className="space-y-6 max-w-3xl">

@@ -30,11 +30,33 @@ export class FootballDataClient {
   constructor(private apiKey: string) {}
 
   private async get<T>(path: string): Promise<T> {
-    const res = await fetch(`${BASE}${path}`, {
-      headers: { "X-Auth-Token": this.apiKey },
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 25_000);
+    let res: Response;
+    try {
+      res = await fetch(`${BASE}${path}`, {
+        headers: { "X-Auth-Token": this.apiKey },
+        signal: controller.signal,
+      });
+    } catch (e) {
+      const err = e as Error & { name?: string };
+      if (err.name === "AbortError") {
+        throw new Error("Football-Data API: timeout (25s sem resposta)");
+      }
+      throw new Error(`Football-Data API: falha de rede (${err.message ?? "desconhecida"})`);
+    } finally {
+      clearTimeout(timeout);
+    }
     if (!res.ok) {
-      throw new Error(`Football-Data API ${res.status}: ${await res.text()}`);
+      // 5xx from Cloudflare in front of football-data.org (522 = upstream
+      // timeout, 521 = origin down, 520 = unknown) is transient — surface a
+      // friendly hint instead of just the raw status text.
+      const cfTransient = res.status >= 520 && res.status <= 530;
+      const detail = await res.text().catch(() => "");
+      const hint = cfTransient
+        ? " (provavelmente instabilidade na Football-Data; tente de novo em alguns minutos)"
+        : "";
+      throw new Error(`Football-Data API ${res.status}${hint}: ${detail.slice(0, 200)}`);
     }
     return res.json() as Promise<T>;
   }

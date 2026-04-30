@@ -197,7 +197,13 @@ export default async function JogosPage({ searchParams }: PageProps) {
 
         {rows.length === 0 && (
           <div className="rounded-2xl border border-dashed border-brand-border bg-brand-card/50 p-8 text-center text-sm text-brand-text-muted">
-            Nenhum jogo cadastrado ainda. Rode <code className="font-mono text-brand-text">pnpm fd:sync</code> pra puxar da Football-Data.
+            Nenhum jogo cadastrado ainda. O sync automático com a Football-Data roda a cada 5 minutos.
+            {session.user.role === "superadmin" && (
+              <>
+                {" "}
+                Pra forçar agora, vá em <Link href="/admin/jogos" className="text-brand-primary hover:underline">Gerenciar jogos</Link> e clique em <strong>Sync</strong>.
+              </>
+            )}
           </div>
         )}
       </div>
