@@ -35,8 +35,8 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Build app
-        run: pnpm build
+      - name: Build app (next build for validation)
+        run: pnpm next:build
         env:
           DATABASE_URL: ./data/ci.db
           SESSION_SECRET: ci-dummy-secret-32-bytes-of-padding

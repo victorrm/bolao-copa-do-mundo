@@ -162,6 +162,46 @@ pnpm cf:deploy
 
 Documentação completa, incluindo CI/CD via GitHub Actions e cron triggers: [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
+### Como emitir a API key do Resend
+
+A plataforma usa o [Resend](https://resend.com) pra disparar magic links de login, lembretes de palpite e o recap diário. O free tier cobre **3.000 emails/mês** — folgado pra empresas pequenas/médias.
+
+**Passo a passo:**
+
+1. **Criar conta**: acesse [resend.com/signup](https://resend.com/signup) e crie a conta com o email da sua empresa. Confirme via link enviado pro seu email.
+
+2. **Verificar o domínio remetente** (recomendado pra produção): em **Domains → Add Domain**, informe o domínio que você vai usar pra enviar (ex: `suaempresa.com.br`). O Resend gera 3 registros DNS:
+   - 1× MX (`send.suaempresa.com.br`)
+   - 1× TXT (SPF)
+   - 1× TXT (DKIM)
+   - 1× TXT (DMARC, opcional mas recomendado)
+
+   Adicione esses registros no seu provedor de DNS (Cloudflare, Registro.br, GoDaddy, etc.) e clique em **Verify DNS Records**. Pode levar de 5 minutos a 24 horas pra propagar.
+
+   > **Atalho pra testar antes de comprar domínio:** o Resend oferece o domínio compartilhado `onboarding@resend.dev` — funciona pra envios de teste, mas **só envia pra você mesmo (o email da conta)**. Não use em produção.
+
+3. **Gerar a API key**: em **API Keys → Create API Key**:
+   - **Name**: algo como `bolao-prod`
+   - **Permission**: `Sending access` (suficiente — não precisa de `Full access`)
+   - **Domain**: selecione o domínio que você verificou no passo 2 (ou `All domains` se for testar com `onboarding@resend.dev`)
+
+   Copie a chave **agora** — ela começa com `re_` e o Resend não mostra de novo. Se perder, gere outra e revogue a antiga.
+
+4. **Cadastrar na Cloudflare**:
+
+   ```sh
+   wrangler secret put RESEND_API_KEY        # cole o re_...
+   wrangler secret put RESEND_FROM_EMAIL     # ex: bolao@suaempresa.com.br
+   ```
+
+   Em produção, o `RESEND_FROM_EMAIL` precisa usar um domínio verificado no passo 2.
+
+5. **Testar**: peça um magic link em `/login` na sua instância. Se chegar no inbox, tá funcionando. Se não chegar, abra a aba **Logs** no dashboard do Resend — ela mostra todos os envios e os motivos de falha (DNS não propagado, domínio bloqueado, etc.).
+
+**Custo:** US$ 0/mês até 3k emails. A partir daí, plano Pro a US$ 20/mês cobre 50k emails. Pra a maioria das empresas durante a Copa, o free tier sobra.
+
+**Sem API key?** Pode rodar normalmente em dev: sem `RESEND_API_KEY`, a aplicação imprime o conteúdo do email no console (incluindo magic links de login), o que é prático pra desenvolvimento mas inviável em produção.
+
 ## Desenvolvimento local
 
 ### Pré-requisitos

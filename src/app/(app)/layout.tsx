@@ -20,16 +20,18 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     .limit(1)
     .then((r) => r[0]?.scheduledAt ?? null);
 
-  const role = session.user.role === "admin" ? "Administrador" : "Participante";
+  const isAdmin = session.user.role === "superadmin";
+  const role = isAdmin ? "Administrador" : "Participante";
 
   return (
     <div className="min-h-screen bg-brand-surface text-brand-text flex">
-      <AppSidebar nextRoundStart={next} />
+      <AppSidebar nextRoundStart={next} isAdmin={isAdmin} />
       <div className="flex-1 min-w-0 flex flex-col">
         <AppHeader
           userName={session.user.name ?? session.user.email.split("@")[0]}
           userRole={role}
           userAvatarUrl={session.user.avatarUrl}
+          isAdmin={isAdmin}
           logoutSlot={<LogoutButton />}
         />
         <main className="flex-1 px-4 lg:px-6 py-6">{children}</main>

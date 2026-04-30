@@ -12,26 +12,61 @@ import {
   Sparkles,
   ScrollText,
   ChevronRight,
+  Shield,
+  Calculator,
+  Settings,
+  Globe,
+  Award,
+  Megaphone,
+  UserCog,
+  ListChecks,
+  Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SidebarProps {
   nextRoundStart?: number | null;
+  isAdmin?: boolean;
 }
 
-const NAV_GROUPS: { label: string; items: { href: string; label: string; icon: typeof Trophy }[] }[] = [
-  {
-    label: "Principal",
-    items: [
-      { href: "/jogos", label: "Jogos", icon: Target },
-      { href: "/jogos?filter=mine", label: "Meus palpites", icon: Trophy },
-      { href: "/grupos", label: "Grupos", icon: Users },
-      { href: "/ranking", label: "Ranking", icon: BarChart3 },
-      { href: "/palpites-especiais", label: "Especiais", icon: Sparkles },
-      { href: "/regras", label: "Regulamento", icon: ScrollText },
-    ],
-  },
-];
+interface NavItem {
+  href: string;
+  label: string;
+  icon: typeof Trophy;
+}
+
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+const PARTICIPANT_NAV: NavGroup = {
+  label: "Principal",
+  items: [
+    { href: "/jogos", label: "Jogos", icon: Target },
+    { href: "/jogos?filter=mine", label: "Meus palpites", icon: Trophy },
+    { href: "/grupos", label: "Grupos", icon: Users },
+    { href: "/ranking", label: "Ranking", icon: BarChart3 },
+    { href: "/palpites-especiais", label: "Especiais", icon: Sparkles },
+    { href: "/regras", label: "Regulamento", icon: ScrollText },
+  ],
+};
+
+const ADMIN_NAV: NavGroup = {
+  label: "Administração",
+  items: [
+    { href: "/admin/regras", label: "Regras & pontuação", icon: Calculator },
+    { href: "/admin/configuracoes", label: "Configurações", icon: Settings },
+    { href: "/admin/jogos", label: "Gerenciar jogos", icon: Target },
+    { href: "/admin/resultados-especiais", label: "Resultados especiais", icon: Sparkles },
+    { href: "/admin/dominios", label: "Domínios", icon: Globe },
+    { href: "/admin/premios", label: "Prêmios", icon: Award },
+    { href: "/admin/broadcast", label: "Broadcast", icon: Megaphone },
+    { href: "/admin/usuarios", label: "Usuários", icon: UserCog },
+    { href: "/admin/auditoria", label: "Auditoria", icon: ListChecks },
+    { href: "/admin/observabilidade", label: "Observabilidade", icon: Activity },
+  ],
+};
 
 function isActive(currentPath: string, href: string) {
   const path = href.split("?")[0];
@@ -39,8 +74,9 @@ function isActive(currentPath: string, href: string) {
   return currentPath === path || currentPath.startsWith(path + "/");
 }
 
-export function AppSidebar({ nextRoundStart }: SidebarProps) {
+export function AppSidebar({ nextRoundStart, isAdmin = false }: SidebarProps) {
   const pathname = usePathname();
+  const groups: NavGroup[] = isAdmin ? [PARTICIPANT_NAV, ADMIN_NAV] : [PARTICIPANT_NAV];
 
   return (
     <aside className="hidden lg:flex w-64 shrink-0 flex-col gap-4 border-r border-brand-border bg-brand-card/40 sticky top-0 h-screen overflow-y-auto px-4 py-5">
@@ -60,39 +96,48 @@ export function AppSidebar({ nextRoundStart }: SidebarProps) {
       </Link>
 
       <nav className="flex flex-col gap-1">
-        {NAV_GROUPS.map((group) => (
-          <div key={group.label} className="mb-1">
-            <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-text-muted/80 mb-2 mt-1">
-              {group.label}
-            </p>
-            <ul className="space-y-0.5">
-              {group.items.map((item) => {
-                const active = isActive(pathname, item.href);
-                return (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors",
-                        active
-                          ? "bg-brand-primary/12 text-brand-primary font-medium"
-                          : "text-brand-text-muted hover:bg-brand-card hover:text-brand-text",
-                      )}
-                    >
-                      <item.icon
+        {groups.map((group) => {
+          const isAdminGroup = group.label === "Administração";
+          return (
+            <div key={group.label} className="mb-1">
+              <p
+                className={cn(
+                  "px-3 text-[10px] font-semibold uppercase tracking-[0.12em] mb-2 mt-1 flex items-center gap-1.5",
+                  isAdminGroup ? "text-brand-warning" : "text-brand-text-muted/80",
+                )}
+              >
+                {isAdminGroup && <Shield className="h-3 w-3" />}
+                {group.label}
+              </p>
+              <ul className="space-y-0.5">
+                {group.items.map((item) => {
+                  const active = isActive(pathname, item.href);
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
                         className={cn(
-                          "h-4 w-4 shrink-0",
-                          active ? "text-brand-primary" : "text-brand-text-muted group-hover:text-brand-text",
+                          "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors",
+                          active
+                            ? "bg-brand-primary/12 text-brand-primary font-medium"
+                            : "text-brand-text-muted hover:bg-brand-card hover:text-brand-text",
                         )}
-                      />
-                      <span>{item.label}</span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
+                      >
+                        <item.icon
+                          className={cn(
+                            "h-4 w-4 shrink-0",
+                            active ? "text-brand-primary" : "text-brand-text-muted group-hover:text-brand-text",
+                          )}
+                        />
+                        <span>{item.label}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          );
+        })}
       </nav>
 
       <InvitePromo />

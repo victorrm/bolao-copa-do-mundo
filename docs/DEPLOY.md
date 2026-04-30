@@ -81,10 +81,12 @@ Pra ativar (uma vez):
 
 1. https://dash.cloudflare.com → Workers & Pages → seu Worker → Settings → Builds → Connect to Git.
 2. Autorize GitHub e selecione `victorrm/bolao-copa-do-mundo` (ou o seu fork).
-3. Build command: `pnpm cf:build`. Deploy command: `pnpm exec opennextjs-cloudflare deploy`. Root directory: `/`.
-4. Branch: `main`.
+3. Branch: `main`. Os comandos default são detectados automaticamente:
+   - **Build command**: `pnpm build` (que aponta pra `opennextjs-cloudflare build` no `package.json`)
+   - **Deploy command**: `pnpm exec opennextjs-cloudflare deploy`
+   - **Root directory**: `/`
 
-Quem usar o botão "Deploy to Cloudflare" do README já recebe isso configurado.
+Não precisa preencher nada custom — o `package.json` já está configurado pra que Workers Builds funcione zero-config. Quem usar o botão "Deploy to Cloudflare" do README já recebe isso configurado.
 
 ## Observabilidade
 

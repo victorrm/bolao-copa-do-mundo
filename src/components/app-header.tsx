@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
-  Bell,
   Search,
   Menu,
   X,
@@ -18,6 +17,15 @@ import {
   ScrollText,
   LogOut,
   User as UserIcon,
+  Shield,
+  Calculator,
+  Settings,
+  Globe,
+  Award,
+  Megaphone,
+  UserCog,
+  ListChecks,
+  Activity,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
@@ -26,6 +34,7 @@ interface HeaderProps {
   userName: string;
   userRole: string;
   userAvatarUrl?: string | null;
+  isAdmin?: boolean;
   logoutSlot: React.ReactNode;
 }
 
@@ -47,12 +56,25 @@ const MOBILE_NAV = [
   { href: "/regras", label: "Regulamento", icon: ScrollText },
 ];
 
+const MOBILE_ADMIN_NAV = [
+  { href: "/admin/regras", label: "Regras & pontuação", icon: Calculator },
+  { href: "/admin/configuracoes", label: "Configurações", icon: Settings },
+  { href: "/admin/jogos", label: "Gerenciar jogos", icon: Target },
+  { href: "/admin/resultados-especiais", label: "Resultados especiais", icon: Sparkles },
+  { href: "/admin/dominios", label: "Domínios", icon: Globe },
+  { href: "/admin/premios", label: "Prêmios", icon: Award },
+  { href: "/admin/broadcast", label: "Broadcast", icon: Megaphone },
+  { href: "/admin/usuarios", label: "Usuários", icon: UserCog },
+  { href: "/admin/auditoria", label: "Auditoria", icon: ListChecks },
+  { href: "/admin/observabilidade", label: "Observabilidade", icon: Activity },
+];
+
 function isTabActive(currentPath: string, href: string) {
   const path = href.split("?")[0];
   return currentPath === path || currentPath.startsWith(path + "/");
 }
 
-export function AppHeader({ userName, userRole, userAvatarUrl, logoutSlot }: HeaderProps) {
+export function AppHeader({ userName, userRole, userAvatarUrl, isAdmin = false, logoutSlot }: HeaderProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -116,16 +138,6 @@ export function AppHeader({ userName, userRole, userAvatarUrl, logoutSlot }: Hea
           >
             <Search className="h-[18px] w-[18px]" />
           </button>
-          <button
-            type="button"
-            aria-label="Notificações"
-            className="relative p-2 rounded-lg hover:bg-brand-card text-brand-text-muted hover:text-brand-text transition-colors"
-          >
-            <Bell className="h-[18px] w-[18px]" />
-            <span className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-primary px-1 text-[10px] font-bold text-white">
-              3
-            </span>
-          </button>
           <ThemeToggle />
 
           {/* User dropdown */}
@@ -172,6 +184,16 @@ export function AppHeader({ userName, userRole, userAvatarUrl, logoutSlot }: Hea
                       <UserIcon className="h-4 w-4 text-brand-text-muted" />
                       Meu perfil
                     </Link>
+                    {isAdmin && (
+                      <Link
+                        href="/admin/regras"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm hover:bg-brand-surface-2 transition-colors"
+                      >
+                        <Shield className="h-4 w-4 text-brand-warning" />
+                        Painel admin
+                      </Link>
+                    )}
                     <div className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm hover:bg-brand-surface-2 transition-colors text-brand-danger [&_button]:w-full [&_button]:justify-start [&_button]:p-0 [&_button]:h-auto [&_button]:bg-transparent [&_button]:hover:bg-transparent [&_button]:text-current [&_button]:shadow-none [&_button]:font-normal">
                       <LogOut className="h-4 w-4" />
                       {logoutSlot}
@@ -236,6 +258,41 @@ export function AppHeader({ userName, userRole, userAvatarUrl, logoutSlot }: Hea
                 );
               })}
             </nav>
+
+            {isAdmin && (
+              <div className="border-t border-brand-border mt-4 pt-4">
+                <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-warning mb-2 flex items-center gap-1.5">
+                  <Shield className="h-3 w-3" />
+                  Administração
+                </p>
+                <nav className="flex flex-col gap-0.5">
+                  {MOBILE_ADMIN_NAV.map((item) => {
+                    const active = isTabActive(pathname, item.href);
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setMobileOpen(false)}
+                        className={cn(
+                          "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors",
+                          active
+                            ? "bg-brand-primary/12 text-brand-primary font-medium"
+                            : "text-brand-text-muted hover:bg-brand-surface-2 hover:text-brand-text",
+                        )}
+                      >
+                        <item.icon
+                          className={cn(
+                            "h-4 w-4",
+                            active ? "text-brand-primary" : "text-brand-text-muted",
+                          )}
+                        />
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </div>
+            )}
 
             <div className="border-t border-brand-border mt-4 pt-4 space-y-2">
               <Link
