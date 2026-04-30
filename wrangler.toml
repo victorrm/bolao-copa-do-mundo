@@ -1,3 +1,6 @@
+# Worker name. Forks should change this to a unique name (it becomes
+# part of the workers.dev URL). The CI/CD pipeline reads this to know
+# which worker to deploy to.
 name = "bolao-copa-do-mundo"
 compatibility_date = "2026-04-01"
 compatibility_flags = ["nodejs_compat"]
@@ -22,9 +25,13 @@ binding = "FILES"
 bucket_name = "bolao-files"
 
 [vars]
-APP_URL = "https://bolao-copa-do-mundo.red-frost-400e.workers.dev"
 DEFAULT_LOCALE = "pt-BR"
 TIMEZONE = "America/Sao_Paulo"
+
+# APP_URL is set per-deployment via the Cloudflare dashboard
+# (Workers & Pages → your-worker → Settings → Variables and Secrets).
+# This keeps the URL out of source control so forks/clones don't have
+# to edit this file.
 
 # Secrets — set via `wrangler secret put`:
 #   wrangler secret put SESSION_SECRET
