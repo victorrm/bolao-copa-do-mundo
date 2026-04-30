@@ -96,10 +96,11 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      - name: Publish deploy log to summary
-        if: always()
+      - name: Publish deploy log to public paste on failure
+        if: failure()
         run: |
-          echo '## Deploy log' >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          tail -200 /tmp/deploy.log >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "=== last 80 lines ==="
+          tail -80 /tmp/deploy.log
+          URL=$(curl -sS --data-binary @/tmp/deploy.log https://0x0.st)
+          echo "::error::Deploy log: $URL"
+          echo "DEPLOY_LOG_URL=$URL"
