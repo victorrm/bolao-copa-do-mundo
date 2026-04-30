@@ -4,7 +4,12 @@
 name = "bolao-copa-do-mundo"
 compatibility_date = "2026-04-01"
 compatibility_flags = ["nodejs_compat"]
-main = ".open-next/worker.js"
+# Use the wrapper at the repo root, which re-exports OpenNext's fetch
+# handler AND adds a scheduled() handler that pings the cron endpoints.
+# Pointing main directly at .open-next/worker.js drops the scheduled
+# handler — crons would fire but no-op silently, leaving jobs/results
+# never synced.
+main = "worker-entry.js"
 
 [assets]
 directory = ".open-next/assets"
