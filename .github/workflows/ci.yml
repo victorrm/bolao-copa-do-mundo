@@ -88,14 +88,18 @@ jobs:
         run: pnpm cf:build
 
       - name: Deploy
-        run: pnpm exec opennextjs-cloudflare upload 2>&1 | tee /tmp/deploy.log; exit ${PIPESTATUS[0]}
+        id: deploy
+        run: |
+          set -o pipefail
+          pnpm exec opennextjs-cloudflare upload 2>&1 | tee /tmp/deploy.log
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      - name: Upload deploy log on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: deploy-log
-          path: /tmp/deploy.log
+      - name: Publish deploy log to summary
+        if: always()
+        run: |
+          echo '## Deploy log' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          tail -200 /tmp/deploy.log >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
