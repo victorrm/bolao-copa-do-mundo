@@ -69,16 +69,22 @@ Já declarados em `wrangler.toml`:
 
 ## 8. CI/CD
 
-`.github/workflows/ci.yml` roda em todo PR/push:
+`.github/workflows/ci.yml` roda em todo PR/push e cobre só verificação de qualidade:
 
 - typecheck
 - unit + integration tests (vitest)
 - E2E tests (Playwright)
 
-Em push para `main`, faz deploy automático em Cloudflare. Configure os secrets no repo:
+**Deploy é feito pelo Cloudflare Workers Builds (Git-native), não pelo GitHub Actions.** Cada push em `main` dispara build+deploy automaticamente na infra da Cloudflare. Não há `CLOUDFLARE_API_TOKEN` em GitHub Secrets — a autorização é via OAuth GitHub ↔ Cloudflare na conexão inicial.
 
-- `CLOUDFLARE_API_TOKEN`
-- `CLOUDFLARE_ACCOUNT_ID`
+Pra ativar (uma vez):
+
+1. https://dash.cloudflare.com → Workers & Pages → seu Worker → Settings → Builds → Connect to Git.
+2. Autorize GitHub e selecione `victorrm/bolao-copa-do-mundo` (ou o seu fork).
+3. Build command: `pnpm cf:build`. Deploy command: `pnpm exec opennextjs-cloudflare deploy`. Root directory: `/`.
+4. Branch: `main`.
+
+Quem usar o botão "Deploy to Cloudflare" do README já recebe isso configurado.
 
 ## Observabilidade
 

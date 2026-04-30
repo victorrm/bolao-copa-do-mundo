@@ -125,6 +125,7 @@ Clicar nesse botão abre o Cloudflare e faz, automaticamente:
 2. Criação dos recursos: Worker, D1 (`bolao-prod`), KV (`CACHE`), R2 (`bolao-files`).
 3. Build via OpenNext + deploy do Worker.
 4. Configuração das variáveis de ambiente (você preenche no formulário guiado).
+5. **Conexão Git-native**: cada push pra `main` no seu fork dispara um novo build+deploy automático na infra da Cloudflare. Não há `CLOUDFLARE_API_TOKEN` pra gerenciar — autorização é via OAuth GitHub ↔ Cloudflare.
 
 Depois do deploy, ainda faltam três passos manuais que o botão não cobre — todos documentados em [`docs/DEPLOY.md`](docs/DEPLOY.md):
 
