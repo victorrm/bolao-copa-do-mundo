@@ -16,6 +16,10 @@ type DbInstance = ReturnType<typeof import("drizzle-orm/better-sqlite3").drizzle
 function shouldUseD1(): boolean {
   if (process.env.DB_DRIVER === "d1") return true;
   if (typeof process !== "undefined" && process.env.NEXT_RUNTIME === "edge") return true;
+  // workerd (Cloudflare Workers runtime, used by OpenNext) exposes WebSocketPair
+  // as a global. Node.js does not. This lets us auto-pick D1 in production CF
+  // deploys without needing the operator to set DB_DRIVER manually.
+  if (typeof (globalThis as { WebSocketPair?: unknown }).WebSocketPair !== "undefined") return true;
   return false;
 }
 
