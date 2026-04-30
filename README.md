@@ -18,6 +18,8 @@ Sem cobrança de mensalidade, sem SaaS, sem dados saindo da sua infra: você cri
   - [Cloudflare (1 clique)](#cloudflare-1-clique)
   - [Primeiro acesso superadmin](#primeiro-acesso-superadmin)
   - [Bootstrap manual via CLI](#bootstrap-manual-via-cli)
+  - [Como emitir a API key do Resend (opcional)](#como-emitir-a-api-key-do-resend-opcional)
+  - [Como emitir a API key da Football-Data](#como-emitir-a-api-key-da-football-data)
 - [Desenvolvimento local](#desenvolvimento-local)
 - [Contribuindo](#contribuindo)
 - [Licença](#licenca)
@@ -210,11 +212,39 @@ A plataforma usa o [Resend](https://resend.com) pra disparar lembretes de palpit
 
    Em produção, o `RESEND_FROM_EMAIL` precisa usar um domínio verificado no passo 2.
 
-5. **Testar**: peça um magic link em `/login` na sua instância. Se chegar no inbox, tá funcionando. Se não chegar, abra a aba **Logs** no dashboard do Resend — ela mostra todos os envios e os motivos de falha (DNS não propagado, domínio bloqueado, etc.).
+5. **Testar**: dispare uma rodada de lembretes pelo painel admin (ou aguarde o cron). Se chegar no inbox, tá funcionando. Se não chegar, abra a aba **Logs** no dashboard do Resend — ela mostra todos os envios e os motivos de falha (DNS não propagado, domínio bloqueado, etc.).
 
 **Custo:** US$ 0/mês até 3k emails. A partir daí, plano Pro a US$ 20/mês cobre 50k emails. Pra a maioria das empresas durante a Copa, o free tier sobra.
 
-**Sem API key?** Pode rodar normalmente em dev: sem `RESEND_API_KEY`, a aplicação imprime o conteúdo do email no console (incluindo magic links de login), o que é prático pra desenvolvimento mas inviável em produção.
+**Sem API key?** Pode rodar normalmente em dev: sem `RESEND_API_KEY`, a aplicação imprime o conteúdo do email no console (lembretes, recap, broadcast). Em produção, sem chave os crons executam mas os envios são apenas logados.
+
+### Como emitir a API key da Football-Data
+
+A plataforma puxa os 104 jogos da Copa do Mundo 2026 (calendário, resultados, pênaltis, prorrogação) da [Football-Data.org](https://www.football-data.org). O free tier cobre 10 requisições por minuto — muito mais do que precisamos (o cron roda a cada 5 minutos).
+
+**Passo a passo:**
+
+1. **Criar conta**: acesse [football-data.org/client/register](https://www.football-data.org/client/register) e cadastre-se com seu email. Não tem custo, não precisa de cartão.
+
+2. **Receber a chave**: o token chega pelo email logo após o cadastro (formato: 32 caracteres hexa).
+
+3. **Cadastrar na Cloudflare** (produção):
+
+   ```sh
+   wrangler secret put FOOTBALL_DATA_API_KEY
+   ```
+
+   Ou pela UI: **Workers & Pages → seu worker → Settings → Variables and Secrets → Add → Type: Secret**, nome `FOOTBALL_DATA_API_KEY`, valor a chave.
+
+4. **Cadastrar local**: cole no `.env`:
+
+   ```env
+   FOOTBALL_DATA_API_KEY=sua-chave-aqui
+   ```
+
+5. **Confirmar que rodou**: faça login como superadmin, vá em `/admin/jogos` e clique **Sync**. Deve trazer todas as seleções e os jogos da fase de grupos. A partir daí, o cron `*/5 * * * *` mantém os resultados atualizados sozinho.
+
+> **⚠️ Forks da comunidade — gere a sua própria chave.** Versões antigas deste repo tinham uma chave de exemplo no `.env.example` (commit inicial). Essa chave **não é segura pra reuso** — alguém que descobrir o histórico pode estourar a quota dela e bloquear sua app. Sempre gere uma chave nova em [football-data.org/client/register](https://www.football-data.org/client/register).
 
 ## Desenvolvimento local
 

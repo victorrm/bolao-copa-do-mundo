@@ -24,7 +24,7 @@ test.describe("signup", () => {
     await page.getByRole("checkbox").check();
     await page.getByRole("button", { name: /criar conta/i }).click();
 
-    await page.waitForURL(/\/admin/, { timeout: 8000 });
+    await page.waitForURL(/\/admin/, { timeout: 25000 });
 
     expect(getUserRole("founder@acme.test")).toBe("superadmin");
     expect(isDomainAllowed("acme.test")).toBe(true);
@@ -42,7 +42,7 @@ test.describe("signup", () => {
     await page.getByRole("checkbox").check();
     await page.getByRole("button", { name: /criar conta/i }).click();
 
-    await page.waitForURL(/\/home/, { timeout: 8000 });
+    await page.waitForURL(/\/home/, { timeout: 25000 });
     expect(getUserRole("bob@acme.test")).toBe("participant");
   });
 

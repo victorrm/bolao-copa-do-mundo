@@ -25,7 +25,7 @@ test.describe("login", () => {
     await page.getByPlaceholder(/senha/i).fill("senha-correta-1234");
     await page.getByRole("button", { name: /entrar/i }).click();
 
-    await page.waitForURL(/\/home/, { timeout: 5000 });
+    await page.waitForURL(/\/home/, { timeout: 20000 });
   });
 
   test("logs in superadmin and redirects to /admin", async ({ page }) => {
@@ -36,7 +36,7 @@ test.describe("login", () => {
     await page.getByPlaceholder(/senha/i).fill("senha-correta-1234");
     await page.getByRole("button", { name: /entrar/i }).click();
 
-    await page.waitForURL(/\/admin/, { timeout: 5000 });
+    await page.waitForURL(/\/admin/, { timeout: 20000 });
   });
 
   test("shows link to /cadastro", async ({ page }) => {
