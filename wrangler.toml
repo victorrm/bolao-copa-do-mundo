@@ -39,6 +39,8 @@ TIMEZONE = "America/Sao_Paulo"
 #   wrangler secret put FOOTBALL_DATA_API_KEY
 #   wrangler secret put CRON_SECRET
 #   wrangler secret put SUPERADMIN_EMAIL
+#   wrangler secret put SUPERADMIN_BOOTSTRAP_PASSWORD  # used only on first login; remove after
+#                                                       # changing the password in the UI.
 
 [triggers]
 crons = [

@@ -16,6 +16,7 @@ Sem cobrança de mensalidade, sem SaaS, sem dados saindo da sua infra: você cri
 - [Custos (gratuito + tier Cloudflare)](#custos)
 - [Self-hosting](#self-hosting)
   - [Cloudflare (1 clique)](#cloudflare-1-clique)
+  - [Primeiro acesso superadmin](#primeiro-acesso-superadmin)
   - [Bootstrap manual via CLI](#bootstrap-manual-via-cli)
 - [Desenvolvimento local](#desenvolvimento-local)
 - [Contribuindo](#contribuindo)
@@ -127,11 +128,31 @@ Clicar nesse botão abre o Cloudflare e faz, automaticamente:
 4. Configuração das variáveis de ambiente (você preenche no formulário guiado).
 5. **Conexão Git-native**: cada push pra `main` no seu fork dispara um novo build+deploy automático na infra da Cloudflare. Não há `CLOUDFLARE_API_TOKEN` pra gerenciar — autorização é via OAuth GitHub ↔ Cloudflare.
 
-Depois do deploy, ainda faltam três passos manuais que o botão não cobre — todos documentados em [`docs/DEPLOY.md`](docs/DEPLOY.md):
+Depois do deploy, ainda faltam dois passos manuais que o botão não cobre — todos documentados em [`docs/DEPLOY.md`](docs/DEPLOY.md):
 
 1. **Aplicar migrations remotas** (`pnpm cf:migrate`).
-2. **Liberar seu domínio corporativo** (`INSERT INTO allowed_domains ...`).
-3. **Promover seu primeiro superadmin** (`UPDATE users SET role='superadmin' ...`).
+2. **Configurar o primeiro acesso superadmin** — ver [Primeiro acesso superadmin](#primeiro-acesso-superadmin) abaixo.
+
+### Primeiro acesso superadmin
+
+O `/admin/login` aceita email + senha (não magic link), o que evita uma dependência circular: se você ainda não configurou o Resend, magic links não funcionam — mas você precisa entrar no painel pra configurar o Resend. A plataforma resolve isso com **bootstrap por variável de ambiente**.
+
+Configure essas duas variáveis no painel da Cloudflare (**Workers & Pages → seu worker → Settings → Variables and Secrets**) — pode ser como Secret:
+
+| Variável | Valor |
+|---|---|
+| `SUPERADMIN_EMAIL` | Email do primeiro superadmin (ex: `voce@suaempresa.com.br`) |
+| `SUPERADMIN_BOOTSTRAP_PASSWORD` | Uma senha temporária forte (mínimo 8 caracteres) |
+
+Em seguida acesse `/admin/login`, entre com esse email e essa senha. Na **primeira vez** que essas credenciais batem:
+
+1. A conta superadmin é criada automaticamente (ou promovida, se já existir um usuário com esse email).
+2. O domínio do email é adicionado à allowlist (pra que outros colegas da empresa consigam logar via magic link depois).
+3. Você é redirecionado pra `/admin/change-password` e **forçado a definir uma senha permanente** antes de qualquer outra ação.
+
+Após a senha ser trocada, **remova `SUPERADMIN_BOOTSTRAP_PASSWORD` do dashboard** — ela só é usada na primeira vez. (Mesmo que você esqueça, ela só funciona enquanto não houver superadmin com `passwordHash` no banco; assim que você troca a senha, o bootstrap vira no-op.)
+
+> **Por que assim e não outras opções?** Magic link exigiria Resend funcionando (chicken-and-egg). Senha hard-coded no código não dá pra customizar e seria insegura. Comando CLI exigiria `wrangler` + acesso ao D1 remoto, o que nem todo operador tem nas mãos no momento do primeiro deploy. A env var é a forma mais simples e auditável: você define, usa uma vez, remove.
 
 ### Bootstrap manual via CLI
 
@@ -148,12 +169,13 @@ pnpm cf:bootstrap
 pnpm cf:migrate
 
 # Configura secrets
-wrangler secret put SESSION_SECRET            # 32+ bytes random
-wrangler secret put SUPERADMIN_EMAIL          # email do admin inicial
-wrangler secret put FOOTBALL_DATA_API_KEY     # api.football-data.org
-wrangler secret put RESEND_API_KEY            # opcional
-wrangler secret put RESEND_FROM_EMAIL         # ex: bolao@suaempresa.com.br
-wrangler secret put CRON_SECRET               # protege endpoints de cron
+wrangler secret put SESSION_SECRET                  # 32+ bytes random
+wrangler secret put SUPERADMIN_EMAIL                # email do admin inicial
+wrangler secret put SUPERADMIN_BOOTSTRAP_PASSWORD   # senha temporária para o 1º login (remover depois)
+wrangler secret put FOOTBALL_DATA_API_KEY           # api.football-data.org
+wrangler secret put RESEND_API_KEY                  # opcional
+wrangler secret put RESEND_FROM_EMAIL               # ex: bolao@suaempresa.com.br
+wrangler secret put CRON_SECRET                     # protege endpoints de cron
 
 # Build + deploy
 pnpm cf:build

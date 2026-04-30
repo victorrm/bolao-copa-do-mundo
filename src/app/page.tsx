@@ -529,26 +529,7 @@ function SiteFooter() {
           <div>
             <h4 className="font-semibold text-sm mb-4">Navegação</h4>
             <ul className="space-y-2.5 text-sm text-brand-text-muted">
-              <li>
-                <Link href="/#features" className="hover:text-brand-primary transition-colors">
-                  Recursos
-                </Link>
-              </li>
-              <li>
-                <Link href="/#especiais" className="hover:text-brand-primary transition-colors">
-                  Especiais
-                </Link>
-              </li>
-              <li>
-                <Link href="/#ranking" className="hover:text-brand-primary transition-colors">
-                  Ranking
-                </Link>
-              </li>
-              <li>
-                <Link href="/#grupos" className="hover:text-brand-primary transition-colors">
-                  Grupos
-                </Link>
-              </li>
+        
               <li>
                 <Link href="/sobre" className="hover:text-brand-primary transition-colors">
                   Sobre
@@ -572,7 +553,7 @@ function SiteFooter() {
               </li>
               <li>
                 <a
-                  href="https://github.com/anthropics/bolao-copa-do-mundo"
+                  href="https://github.com/victorrm/bolao-copa-do-mundo"
                   target="_blank"
                   rel="noreferrer"
                   className="hover:text-brand-primary transition-colors"
@@ -603,7 +584,7 @@ function SiteFooter() {
             </p>
             <div className="flex items-center gap-2">
               <a
-                href="https://github.com"
+                href="https://github.com/victorrm"
                 target="_blank"
                 rel="noreferrer"
                 className="flex h-9 w-9 items-center justify-center rounded-lg border border-brand-border bg-brand-card text-brand-text-muted hover:text-brand-primary hover:border-brand-primary/40 transition-colors"
@@ -611,26 +592,13 @@ function SiteFooter() {
               >
                 <Github className="h-4 w-4" />
               </a>
-              <a
-                href="#"
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-brand-border bg-brand-card text-brand-text-muted hover:text-brand-primary hover:border-brand-primary/40 transition-colors"
-                aria-label="Discord"
-              >
-                <DiscordIcon className="h-4 w-4" />
-              </a>
-              <a
-                href="mailto:hello@example.com"
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-brand-border bg-brand-card text-brand-text-muted hover:text-brand-primary hover:border-brand-primary/40 transition-colors"
-                aria-label="Email"
-              >
-                <Mail className="h-4 w-4" />
-              </a>
+             
             </div>
           </div>
         </div>
 
         <div className="border-t border-brand-border mt-10 pt-6 text-center text-xs text-brand-text-muted">
-          © 2025 Bolão Copa do Mundo 2026. Código aberto sob a licença MIT.
+          © 2026 Bolão Copa do Mundo 2026. Código aberto sob a licença MIT, desenvolvido por Victor R. Magalhães. <br className="sm:hidden" />
         </div>
       </div>
     </footer>
